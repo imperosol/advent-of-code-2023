@@ -1,4 +1,4 @@
-<img src="./.assets/christmas_ferris.png" width="164">
+<img alt="christmas Ferry" src="./.assets/christmas_ferris.png" width="164">
 
 # 🎄 Advent of Code 2023
 
@@ -7,16 +7,17 @@ Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.
 <!--- advent_readme_stars table --->
 
 <!--- benchmarking table --->
+
 ## Benchmarks
 
-| Day | Part 1 | Part 2 |
-| :---: | :---: | :---:  |
-| [Day 1](./src/bin/01.rs) | `68.0µs` | `1.9ms` |
-| [Day 2](./src/bin/02.rs) | `64.2µs` | `89.3µs` |
-| [Day 3](./src/bin/03.rs) | `203.8µs` | `151.5µs` |
-| [Day 5](./src/bin/05.rs) | `-` | `-` |
+|           Day            |  Part 1   |  Part 2   |
+|:------------------------:|:---------:|:---------:|
+| [Day 1](./src/bin/01.rs) | `60.6µs`  |  `1.7ms`  |
+| [Day 2](./src/bin/02.rs) | `58.1µs`  | `86.4µs`  |
+| [Day 3](./src/bin/03.rs) | `184.0µs` | `142.5µs` |
+| [Day 4](./src/bin/04.rs) | `343.2µs` | `352.5µs` |
 
-**Total: 2.48ms**
+**Total: 2.93ms**
 <!--- benchmarking table --->
 
 ---
@@ -71,7 +72,8 @@ against the example input.
 
 > [!TIP]
 > If a day has different example inputs for both parts, you can use the `read_file_part()` helper in your tests instead
-> of `read_file()`. For example, if this applies to day 1, you can create a second example file `01-2.txt` and invoke the
+> of `read_file()`. For example, if this applies to day 1, you can create a second example file `01-2.txt` and invoke
+> the
 > helper like `let result = part_two(&advent_of_code::template::read_file_part("examples", DAY, 2));` to read it
 > in `test_part_two`.
 
