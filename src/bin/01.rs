@@ -17,8 +17,6 @@ const DIGIT_STR: [&str; 9] = [
     "nine", // "1", "2", "3", "4", "5", "6", "7", "8", "9"
 ];
 
-const DIGIT_RE: &str = r"one|two|three|four|five|six|seven|eight|nine|\d";
-
 fn str_to_digit(m: &str) -> Option<u32> {
     DIGIT_STR
         .iter()
