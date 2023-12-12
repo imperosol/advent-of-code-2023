@@ -23,4 +23,8 @@ data/puzzles/*
 !data/puzzles/.keep
 
 .idea
+.vscode
 .editorconfig
+
+# KDE file explorer config file
+/.directory

@@ -1,4 +1,4 @@
-<img alt="christmas Ferry" src="./.assets/christmas_ferris.png" width="164">
+![christmas Ferry](./.assets/christmas_ferris.png)
 
 # 🎄 Advent of Code 2023
 
