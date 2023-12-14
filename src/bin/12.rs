@@ -1,116 +1,95 @@
 advent_of_code::solution!(12);
-// use anyhow::Result;
+// use crate::State::{Broken, Unknown, Valid};
 // use itertools::Itertools;
-// use std::cmp::min;
+// use rayon::prelude::*;
+// use std::fmt::Error;
 // use std::str::FromStr;
+//
+// #[derive(Debug, Clone, Eq, PartialEq)]
+// enum State {
+//     Valid,
+//     Broken,
+//     Unknown,
+// }
+//
+// impl TryFrom<char> for State {
+//     type Error = anyhow::Error;
+//
+//     fn try_from(value: char) -> Result<Self, Self::Error> {
+//         match value {
+//             '#' => Ok(Broken),
+//             '.' => Ok(Valid),
+//             '?' => Ok(Unknown),
+//             _ => Err(Error.into()),
+//         }
+//     }
+// }
 //
 // #[derive(Debug, Clone)]
 // struct Row {
-//     springs: String,
+//     springs: Vec<State>,
 //     sizes: Vec<usize>,
 // }
 //
 // impl Row {
+//     #[inline(always)]
 //     fn is_valid(&self) -> bool {
-//         let mut chars = self.springs.chars().peekable();
-//         let sizes_ok = self.sizes.iter().all(|size| {
-//             while let Some(_) = chars.next_if(|&c| c == '.') {}
-//             (0..*size).all(|_| chars.next() == Some('#')) && (chars.peek() != Some(&'#'))
-//         });
-//         let no_remaining_sharp = chars.all(|c| c == '.');
-//         sizes_ok && no_remaining_sharp
+//         let mut states = self.springs.iter().peekable();
+//         self.sizes.iter().all(|size| {
+//             while let Some(_) = states.next_if(|&c| c == &Valid) {}
+//             (0..*size).all(|_| states.next() == Some(&Broken)) && (states.peek() != Some(&&Broken))
+//         }) && states.all(|c| c == &Valid)
 //     }
 //
-//     fn test_sharp_and_point(&mut self) -> usize {
+//     /// Recursively get the combination when replacing the first element by
+//     /// a broken one then by a valid one
+//     fn build_recursively(&mut self) -> usize {
 //         if self.springs.is_empty() || self.sizes.is_empty() {
 //             return self.nb_arrangements();
 //         }
-//         self.springs.replace_range(0..1, "#");
-//         let nb_with_sharp = self.nb_arrangements();
-//         self.springs = self
+//         self.springs[0] = Broken;
+//         let nb_broken = self.nb_arrangements();
+//         let nb_to_remove = 1 + self
 //             .springs
-//             .chars()
+//             .iter()
 //             .skip(1)
-//             .skip_while(|&c| c == '.')
-//             .collect();
-//         let nb_with_point = self.nb_arrangements();
-//         nb_with_point + nb_with_sharp
+//             .skip_while(|&i| i == &Valid)
+//             .count();
+//         self.springs.drain(0..nb_to_remove);
+//         let nb_ok = self.nb_arrangements();
+//         nb_ok + nb_broken
 //     }
 //
+//     #[inline(always)]
 //     fn remove_trailing_point(&mut self) {
-//         if self.springs.starts_with('.') {
-//             self.springs = self.springs.chars().skip_while(|&c| c == '.').collect();
+//         let count = self.springs.iter().take_while(|&i| i == &Valid).count();
+//         if count > 0 {
+//             self.springs.drain(..count);
 //         }
 //     }
 //
-//     fn nb_arrangements(&self) -> usize {
-//         if self.is_valid() {
-//             return 1;
-//         } else if self.springs.chars().all(|c| c != '?') {
-//             // everything is known, but it is incorrect
-//             return 0;
-//         }
-//         if self.sizes.is_empty() {
-//             return if self.springs.chars().any(|c| c == '#') {
-//                 0
-//             } else {
-//                 1
-//             };
-//         } else if self.springs.len() < self.sizes.iter().sum() {
-//             return 0;
-//         }
-//
-//         let nb_sharps = self.springs.chars().take_while(|&c| c == '#').count();
-//         if nb_sharps == 0 {
-//             let mut cloned = self.clone();
-//             cloned.test_sharp_and_point()
-//         } else if (1..self.sizes[0]).contains(&nb_sharps) {
-//             if self.springs.chars().take(self.sizes[0]).any(|c| c == '.') {
-//                 0
-//             } else {
-//                 // if here, the next char to explore must be a '#'
-//                 let mut cloned = self.clone();
-//                 cloned
-//                     .springs
-//                     .replace_range(0..=min(cloned.sizes[0], cloned.springs.len() - 1), "");
-//                 cloned.remove_trailing_point();
-//                 cloned.sizes.remove(0);
-//                 cloned.test_sharp_and_point()
-//             }
-//         } else if self.sizes[0] == nb_sharps {
-//             let mut cloned = self.clone();
-//             cloned
-//                 .springs
-//                 .replace_range(0..=min(cloned.sizes[0], cloned.springs.len() - 1), "");
-//             cloned.remove_trailing_point();
-//             cloned.sizes.remove(0);
-//             cloned.test_sharp_and_point()
-//         } else {
-//             0
-//         }
-//     }
-//
-//     fn combinations(&self) -> impl Iterator<Item = Row> + '_ + Clone {
+//     fn combinations(&self) -> impl ParallelIterator<Item = Row> + '_ + Clone {
 //         let indexes = self
 //             .springs
-//             .chars()
+//             .iter()
 //             .enumerate()
-//             .filter_map(|(ind, c)| match c {
-//                 '?' => Some(ind),
+//             .filter_map(|(ind, state)| match state {
+//                 Unknown => Some(ind),
 //                 _ => None,
 //             })
 //             .collect_vec();
-//         (0..2_u32.pow(indexes.len() as u32)).map(move |mask| {
-//             let mut clone = self.clone();
-//             indexes.iter().enumerate().for_each(|(idx, &n)| {
-//                 let s = match (mask >> idx) & 1 {
-//                     0 => ".",
-//                     _ => "#",
-//                 };
-//                 clone.springs.replace_range(n..=n, s);
-//             });
-//             clone
-//         })
+//         (0..2_u32.pow(indexes.len() as u32))
+//             .into_par_iter()
+//             .map(move |mask| {
+//                 let mut clone = self.clone();
+//                 indexes.iter().enumerate().for_each(|(idx, &n)| {
+//                     clone.springs[n] = match (mask >> idx) & 1 {
+//                         0 => Valid,
+//                         _ => Broken,
+//                     };
+//                 });
+//                 clone
+//             })
 //     }
 // }
 //
@@ -119,7 +98,12 @@ advent_of_code::solution!(12);
 //
 //     fn from_str(s: &str) -> Result<Self, Self::Err> {
 //         let mut parts = s.split(' ');
-//         let springs = parts.next().unwrap().to_string();
+//         let springs = parts
+//             .next()
+//             .unwrap()
+//             .chars()
+//             .map(|c| c.try_into().unwrap())
+//             .collect();
 //         let sizes = parts
 //             .next()
 //             .unwrap()
@@ -135,12 +119,9 @@ pub fn part_one(_input: &str) -> Option<u32> {
     // Fuck it, I will do it later *maybe*
 
     // let res = input
-    //     .lines()
+    //     .par_lines()
     //     .map(|line| line.parse::<Row>().unwrap())
-    //     .map(|row| {
-    //         row.combinations() /*.filter(|c| c.is_valid())*/
-    //             .count() as u32
-    //     })
+    //     .map(|row| row.combinations().filter(|c| c.is_valid()).count() as u32)
     //     .sum::<u32>();
     // Some(res)
 
